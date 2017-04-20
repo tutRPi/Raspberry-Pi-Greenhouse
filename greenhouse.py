@@ -126,11 +126,12 @@ def checkWindow():
     if temperature > SETTINGS["TEMP_THRESHOLD"]:
         # open window
         angle = float(SETTINGS["SERVO_OPEN_ANGLE"]) / 20.0 + 2.5
-        pwm.ChangeDutyCycle(angle)
+        pwm.start(angle)
     else:
         # close window
-        pwm.ChangeDutyCycle(2.5)
+        pwm.start(2.5)
     # save current
+    time.sleep(2)
     pwm.ChangeDutyCycle(0)
 
 
