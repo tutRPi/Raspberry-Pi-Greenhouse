@@ -25,7 +25,7 @@ import RPi.GPIO as GPIO
 import Adafruit_DHT
 from MCP3008 import MCP3008
 import SDL_DS1307
-
+import time
 
 ##################################################################
 ##################### CUSTOMIZEABLE SETTINGS #####################
@@ -64,16 +64,18 @@ SETTINGS = {
 
 
 def readTime():
-    ds1307 = SDL_DS1307.SDL_DS1307(1, 0x68)
-    return ds1307.read_datetime()
-    # alternative: return the system-time:
-    #return datetime.datetime.utcnow()
+    try:
+        ds1307 = SDL_DS1307.SDL_DS1307(1, 0x68)
+        return ds1307.read_datetime()
+    except:
+        # alternative: return the system-time:
+        return datetime.datetime.utcnow()
     
 def checkLight():
-    time = readTime()
+    timestamp = readTime()
     GPIO.setup(plantObject["LIGHT_GPIO"], GPIO.OUT, initial=GPIO.HIGH)
     
-    if SETTINGS["LIGHT_FROM"] <= time.hour <= SETTINGS["LIGHT_UNTIL"]:
+    if SETTINGS["LIGHT_FROM"] <= timestamp.hour <= SETTINGS["LIGHT_UNTIL"]:
         # check light sensors
         adc = MCP3008()
         # read 10 times to avoid measuring errors
@@ -108,7 +110,7 @@ def wateringPlants():
         
         value /= float(len(plantObject["MOISTURE_CHANNELS"]))
         
-        if value > plantObject["MOISTURE_THRESHOLDS"]:
+        if value > plantObject["MOISTURE_THRESHOLD"]:
             # turn pump on for some seconds
             GPIO.setup(plantObject["WATER_PUMP_GPIO"], GPIO.OUT, initial=GPIO.LOW)
             time.sleep(plantObject["WATERING_TIME"])
@@ -124,7 +126,7 @@ def checkWindow():
     if temperature > SETTINGS["TEMP_THRESHOLD"]:
         # open window
         angle = float(SETTINGS["SERVO_OPEN_ANGLE"]) / 20.0 + 2.5
-        pwm.ChangeDutyCycle(d)
+        pwm.ChangeDutyCycle(angle)
     else:
         # close window
         pwm.ChangeDutyCycle(2.5)
@@ -133,12 +135,13 @@ def checkWindow():
 
 
 if __name__ == '__main__':
-    GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BCM)
-    
-    # execute functions
-    checkLight()
-    wateringPlants()
-    checkWindow()
-    
-    GPIO.cleanup()
+    try:
+        GPIO.setwarnings(False)
+        GPIO.setmode(GPIO.BCM)
+
+        # execute functions
+        checkLight()
+        wateringPlants()
+        checkWindow()
+    finally:
+        GPIO.cleanup()
