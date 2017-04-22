@@ -73,7 +73,7 @@ def readTime():
     
 def checkLight():
     timestamp = readTime()
-    GPIO.setup(plantObject["LIGHT_GPIO"], GPIO.OUT, initial=GPIO.HIGH)
+    GPIO.setup(SETTINGS["LIGHT_GPIO"], GPIO.OUT, initial=GPIO.HIGH)
     
     if SETTINGS["LIGHT_FROM"] <= timestamp.hour <= SETTINGS["LIGHT_UNTIL"]:
         # check light sensors
@@ -86,13 +86,13 @@ def checkLight():
         
         if value <= SETTINGS["LIGHT_THRESHOLD"]:
             # turn light on
-            GPIO.output(plantObject["LIGHT_GPIO"], GPIO.LOW) # Relay LOW = ON
+            GPIO.output(SETTINGS["LIGHT_GPIO"], GPIO.LOW) # Relay LOW = ON
         else:
             # turn light off
-            GPIO.output(plantObject["LIGHT_GPIO"], GPIO.HIGH)
+            GPIO.output(SETTINGS["LIGHT_GPIO"], GPIO.HIGH)
     else:
         # turn light off
-        GPIO.output(plantObject["LIGHT_GPIO"], GPIO.HIGH)
+        GPIO.output(SETTINGS["LIGHT_GPIO"], GPIO.HIGH)
         
     
 def wateringPlants():
@@ -144,5 +144,5 @@ if __name__ == '__main__':
         checkLight()
         wateringPlants()
         checkWindow()
-    finally:
+    except:
         GPIO.cleanup()
